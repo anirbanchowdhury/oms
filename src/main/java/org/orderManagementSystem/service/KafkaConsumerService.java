@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,8 +50,9 @@ public class KafkaConsumerService {
         order.setCcy(orderMessage.getCcy());
         order.setDirection(orderMessage.getDirection());
         order.setQuantity(orderMessage.getQuantity());
-        order.setFromDt();
-        order.setThruDt(orderMessage.getThruDt());
+        // Set fromDt to the current date and thruDt to 'infinity' (a large future date)
+        order.setFromDt(LocalDate.now()); // Current date
+        order.setThruDt(LocalDate.of(9999, 12, 31)); // "Infinity" as 9999-12-31
 
         // Step 3: Process allocations
         List<AllocationMessage> allocations = orderMessage.getAllocations();
