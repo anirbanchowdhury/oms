@@ -1,25 +1,27 @@
 package org.orderManagementSystem.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "Product")
 public class Product {
 
-    @Id
-    private String productId;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long productId;  // Changed to Long and made auto-increment
+
+    @Column(nullable = false)
     private String productName;
 
     // getters and setters
 
-    public String getProductId() {
+
+    public Long getProductId() {
         return productId;
     }
 
-    public void setProductId(String productId) {
+    public void setProductId(Long productId) {
         this.productId = productId;
     }
 

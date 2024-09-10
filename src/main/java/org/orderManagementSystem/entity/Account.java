@@ -1,26 +1,25 @@
 package org.orderManagementSystem.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "Account")
 public class Account {
 
     @Id
-    private String accountId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long accountId;  // Changed to Long and made auto-increment
 
     private String accountName;
 
     // getters and setters
 
 
-    public String getAccountId() {
+    public Long getAccountId() {
         return accountId;
     }
 
-    public void setAccountId(String accountId) {
+    public void setAccountId(Long accountId) {
         this.accountId = accountId;
     }
 

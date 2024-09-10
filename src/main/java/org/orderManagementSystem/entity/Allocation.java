@@ -10,12 +10,13 @@ public class Allocation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long allocationId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(nullable = false)
-    private String accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)  // Add relationship with Account
+    private Account account;
 
     @Column(nullable = false)
     private int pendingQuantity;
@@ -28,6 +29,7 @@ public class Allocation {
 
     @Column(nullable = false)
     private String allocationCcy;
+
 
     @Column(nullable = false)
     private LocalDate fromDt;
@@ -53,12 +55,12 @@ public class Allocation {
         this.order = order;
     }
 
-    public String getAccountId() {
-        return accountId;
+    public Account getAccount() {
+        return account;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setAccount(Account account) {
+        this.account = account;
     }
 
     public int getPendingQuantity() {

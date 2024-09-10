@@ -3,10 +3,11 @@ package org.orderManagementSystem.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "Order")
+@Table(name = "Orders")
 public class Order {
 
     @Id
@@ -16,8 +17,9 @@ public class Order {
     @Column(nullable = false)
     private String sourceId;
 
-    @Column(nullable = false)
-    private String productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 
     @Column(nullable = false)
     private String ccy;
@@ -34,8 +36,8 @@ public class Order {
     @Column(nullable = false)
     private LocalDate thruDt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<Allocation> allocations;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Allocation> allocations = new ArrayList<>();
 
     // Getters and setters...
 
@@ -55,13 +57,7 @@ public class Order {
         this.sourceId = sourceId;
     }
 
-    public String getProductId() {
-        return productId;
-    }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
-    }
 
     public String getCcy() {
         return ccy;
@@ -109,5 +105,13 @@ public class Order {
 
     public void setAllocations(List<Allocation> allocations) {
         this.allocations = allocations;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }

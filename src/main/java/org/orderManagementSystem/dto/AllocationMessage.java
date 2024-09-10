@@ -1,15 +1,15 @@
 package org.orderManagementSystem.dto;
 
 public class AllocationMessage {
-    private String accountId;
+    private String accountName;
     private int pendingQuantity;
 
-    public String getAccountId() {
-        return accountId;
+    public String getAccountName() {
+        return accountName;
     }
 
-    public void setAccountId(String accountId) {
-        this.accountId = accountId;
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 
     public int getPendingQuantity() {

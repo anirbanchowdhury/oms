@@ -5,7 +5,7 @@ import java.util.List;
 
 public class OrderMessage {
     private String sourceId;
-    private String productId;
+    private String productName;
     private String ccy;
     private String direction;
     private int quantity;
@@ -23,12 +23,12 @@ public class OrderMessage {
         this.sourceId = sourceId;
     }
 
-    public String getProductId() {
-        return productId;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public String getCcy() {
