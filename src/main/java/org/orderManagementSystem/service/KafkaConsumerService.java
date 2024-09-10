@@ -20,6 +20,10 @@ import java.util.Optional;
 @Service
 public class KafkaConsumerService {
 
+
+    public static final String OMS_TOPIC = "orders_topic";
+    public static final String PM_TOPIC = "pm-responses";
+
     @Autowired
     private OrderRepository orderRepository;
 
@@ -32,7 +36,7 @@ public class KafkaConsumerService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "orders_topic", groupId = "oms-group")
+    @KafkaListener(topics = OMS_TOPIC, groupId = "oms-group")
     public void consumeOrder(String message) throws Exception {
         OrderMessage orderMessage = objectMapper.readValue(message, OrderMessage.class);
 

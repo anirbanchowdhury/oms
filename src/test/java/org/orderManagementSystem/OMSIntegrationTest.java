@@ -1,5 +1,6 @@
 package org.orderManagementSystem;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.orderManagementSystem.service.KafkaConsumerService.OMS_TOPIC;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -45,8 +46,6 @@ public class OMSIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final String OMS_TOPIC = "orders_topic";
-    private static final String PM_TOPIC = "pm-responses";
 
     @Test
     @Transactional
@@ -73,7 +72,7 @@ public class OMSIntegrationTest {
         orderMessage.put("direction", "BUY");
         orderMessage.put("quantity", 100);
 
-        // Allocations: AC1 = 60%, AC2 = 40%
+        // Allocations: AC1 = 60%, AC2 = 40% - simulating partial fills
         Map<String, Object> allocation1 = new HashMap<>();
         allocation1.put("accountName", "AC1");  // Sending account name instead of accountId
         allocation1.put("pendingQuantity", 60);
