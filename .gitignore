@@ -4,6 +4,10 @@
 # Log files
 *.log
 
+*.lock
+*.bin
+*.probe
+
 # Package Files
 *.jar
 *.war
