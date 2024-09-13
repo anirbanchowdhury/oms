@@ -78,4 +78,18 @@ public class OrderMessage {
     public void setAllocations(List<AllocationMessage> allocations) {
         this.allocations = allocations;
     }
+
+    @Override
+    public String toString() {
+        return "OrderMessage{" +
+                "sourceId='" + sourceId + '\'' +
+                ", productName='" + productName + '\'' +
+                ", ccy='" + ccy + '\'' +
+                ", direction='" + direction + '\'' +
+                ", quantity=" + quantity +
+                ", fromDt=" + fromDt +
+                ", thruDt=" + thruDt +
+                ", allocations=" + allocations +
+                '}';
+    }
 }

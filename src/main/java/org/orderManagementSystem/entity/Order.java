@@ -114,4 +114,19 @@ public class Order {
     public void setProduct(Product product) {
         this.product = product;
     }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "orderId=" + orderId +
+                ", sourceId='" + sourceId + '\'' +
+                ", product=" + product +
+                ", ccy='" + ccy + '\'' +
+                ", direction='" + direction + '\'' +
+                ", quantity=" + quantity +
+                ", fromDt=" + fromDt +
+                ", thruDt=" + thruDt +
+                ", allocations=" + allocations +
+                '}';
+    }
 }

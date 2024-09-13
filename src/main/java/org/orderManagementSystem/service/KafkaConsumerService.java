@@ -2,6 +2,7 @@ package org.orderManagementSystem.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.orderManagementSystem.dto.AllocationMessage;
 import org.orderManagementSystem.dto.OrderMessage;
+import org.orderManagementSystem.dto.PMResponseMessage;
 import org.orderManagementSystem.entity.Account;
 import org.orderManagementSystem.entity.Allocation;
 import org.orderManagementSystem.entity.Order;
@@ -9,8 +10,11 @@ import org.orderManagementSystem.entity.Product;
 import org.orderManagementSystem.repository.AccountRepository;
 import org.orderManagementSystem.repository.OrderRepository;
 import org.orderManagementSystem.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -23,7 +27,7 @@ public class KafkaConsumerService {
 
     public static final String OMS_TOPIC = "orders_topic";
     public static final String PM_TOPIC = "pm-responses";
-
+    private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerService.class);
     @Autowired
     private OrderRepository orderRepository;
 
@@ -36,9 +40,14 @@ public class KafkaConsumerService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+
     @KafkaListener(topics = OMS_TOPIC, groupId = "oms-group")
     public void consumeOrder(String message) throws Exception {
         OrderMessage orderMessage = objectMapper.readValue(message, OrderMessage.class);
+        logger.info("received order {}", orderMessage);
 
         // Step 1: Fetch the product based on product name
         Optional<Product> productOpt = productRepository.findByProductName(orderMessage.getProductName());
@@ -85,6 +94,17 @@ public class KafkaConsumerService {
 
         // Step 4: Save the order with its allocations
         orderRepository.save(order);
+        logger.info("orders saved {}", order);
+        // Step 1: Create the response message
+        PMResponseMessage pmResponse = new PMResponseMessage();
+        pmResponse.setSourceId(orderMessage.getSourceId());
+        pmResponse.setOrderId(order.getOrderId());
+        pmResponse.setStatus("OK"); // Status OK
+
+        // Step 2: Send the response message to the PM_TOPIC
+        kafkaTemplate.send(PM_TOPIC, objectMapper.writeValueAsString(pmResponse));
+        logger.info("ACK sent back to PM topic");
+
     }
 }
 

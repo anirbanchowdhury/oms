@@ -22,15 +22,18 @@ public class OmsApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        executeShellScript("","/Users/aniamritapc/Downloads/kafka_2.13-3.8.0/bin/zookeeper-server-start.sh /Users/aniamritapc/Downloads/kafka_2.13-3.8.0/config/zookeeper.properties");
-        executeShellScript("","/Users/aniamritapc//Downloads/kafka_2.13-3.8.0/bin/kafka-server-start.sh /Users/aniamritapc/Downloads/kafka_2.13-3.8.0/config/server.properties");
+        executeShellScript("zookeeper.properties","/Users/aniamritapc/Downloads/kafka_2.13-3.8.0/bin/zookeeper-server-start.sh /Users/aniamritapc/Downloads/kafka_2.13-3.8.0/config/zookeeper.properties");
+        executeShellScript("kafka.Kafka","/Users/aniamritapc//Downloads/kafka_2.13-3.8.0/bin/kafka-server-start.sh /Users/aniamritapc/Downloads/kafka_2.13-3.8.0/config/server.properties");
     }
 
 
     public void executeShellScript(String processName,String pathToProcessName) throws Exception {
         try {
             // Check if the process is already running (using 'pgrep' for example)
-            Process checkProcess = Runtime.getRuntime().exec(new String[] { "pgrep", "-f", processName });
+            String[] command = { "sh", "-c", "ps aux | grep "+processName+" | grep -v grep|awk '{print $2}'" };
+            Process checkProcess = Runtime.getRuntime().exec(command);
+
+
 
             // Read the output to see if the process is already running
             BufferedReader reader = new BufferedReader(new InputStreamReader(checkProcess.getInputStream()));
@@ -38,12 +41,12 @@ public class OmsApplication implements CommandLineRunner {
 
             // If there is output from `pgrep`, the process is already running
             if (line != null && !line.isEmpty()) {
-                logger.error("Process {}  is already running. No need to start the script." , processName  );
+                logger.error("Process {}  is already running at {}. No need to start the script." , processName,line  );
                 return;
             }
 
             // If the process is not found, execute the shell script
-            //;
+
             Process process = Runtime.getRuntime().exec(pathToProcessName);
 
             // Wait for the process to complete
