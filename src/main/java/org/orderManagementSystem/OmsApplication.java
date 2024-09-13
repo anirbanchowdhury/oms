@@ -29,11 +29,10 @@ public class OmsApplication implements CommandLineRunner {
 
     public void executeShellScript(String processName,String pathToProcessName) throws Exception {
         try {
+            logger.info("Going to search for {} , else execute {}",processName,pathToProcessName);
             // Check if the process is already running (using 'pgrep' for example)
-            String[] command = { "sh", "-c", "ps aux | grep "+processName+" | grep -v grep|awk '{print $2}'" };
+            String[] command = { "sh", "-c", "ps aux | grep "+processName+" | grep -v grep | awk '{print $2}'" };
             Process checkProcess = Runtime.getRuntime().exec(command);
-
-
 
             // Read the output to see if the process is already running
             BufferedReader reader = new BufferedReader(new InputStreamReader(checkProcess.getInputStream()));
@@ -46,9 +45,7 @@ public class OmsApplication implements CommandLineRunner {
             }
 
             // If the process is not found, execute the shell script
-
             Process process = Runtime.getRuntime().exec(pathToProcessName);
-
             // Wait for the process to complete
             int exitCode = process.waitFor();
             if (exitCode == 0) {

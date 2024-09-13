@@ -7,12 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.aspectj.lang.annotation.Before;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.orderManagementSystem.dto.PMResponseMessage;
 import org.orderManagementSystem.entity.*;
+import org.orderManagementSystem.entity.Order;
 import org.orderManagementSystem.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +25,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +38,7 @@ import java.util.Map;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+
 public class OMSIntegrationTest {
 
     @Autowired
@@ -60,22 +62,47 @@ public class OMSIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    EntityManager entityManager;
     private LinkedBlockingQueue<String> pmResponseQueue = new LinkedBlockingQueue<>();
 
+    /*@BeforeEach
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Commit
+    public void setupOnceBefore(){
+        Optional<Product> productOpt = productRepository.findByProductName("P1");
+        if(productOpt.isEmpty()) {
+            Product product = new Product();
+            product.setProductName("P1");
+            productRepository.save(product);
+        }
 
-    // Optional cleanup after each test if needed
+        if(accountRepository.findByAccountName("AC1").isEmpty()) {
+            Account account = new Account();
+            account.setAccountName("AC1");
+            accountRepository.save(account);
+        }
+        if(accountRepository.findByAccountName("AC2").isEmpty()) {
+            Account account2 = new Account();
+            account2.setAccountName("AC2");
+            accountRepository.save(account2);
+        }
+        entityManager.clear();
+    }
+*/
     @AfterEach
     @Transactional
     @Commit
-    public void afterEach() {
+    public void cleanupOnceAtTheEnd() {
         fillRepository.deleteAll();
         allocationRepository.deleteAll();
-        //allocationRepository.deleteByAllocationId(77L);
-        //allocationRepository.deleteAll();
         orderRepository.deleteAll();
         assertEquals(0, orderRepository.findAll().size(), "Order should be deleted and not exist in the database");
-        logger.info("cleaning up");
+        /*productRepository.deleteAll();
+        accountRepository.deleteAll();
 
+         */
+        logger.info("cleaning up");
     }
     // Step 1: Listen to the PM_TOPIC for responses
     @KafkaListener(topics = PM_TOPIC, groupId = "pm-group")
@@ -89,20 +116,6 @@ public class OMSIntegrationTest {
     @Transactional
     @Commit
     public void testOrderProcessingAndFillingWithNames() throws Exception {
-        /*
-        Product product = new Product();
-        product.setProductName("P1");
-        productRepository.save(product);
-
-        Account account = new Account();
-        account.setAccountName("AC1");
-        accountRepository.save(account);
-
-        Account account2 = new Account();
-        account2.setAccountName("AC2");
-        accountRepository.save(account2);
-
-        */
         // Step 1: Create JSON order message with productName and accountNames
         Map<String, Object> orderMessage = new HashMap<>();
         orderMessage.put("sourceId", "SRC1");
@@ -137,7 +150,7 @@ public class OMSIntegrationTest {
         // Step 3: Wait for the system to process the order and check the database
         Awaitility.await()
                 .atMost(10, TimeUnit.SECONDS)
-                .until(() -> orderRepository.count() ==1 );  // Wait for the order to be processed
+                .until(() -> orderRepository.count() == 1 );  // Wait for the order to be processed
 
         // Step 4: Assert the database state (Order, Allocations, etc.)
         List<Order> orders = orderRepository.findAll();  // Fetch the processed order

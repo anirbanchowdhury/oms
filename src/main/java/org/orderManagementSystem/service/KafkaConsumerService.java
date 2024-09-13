@@ -53,6 +53,7 @@ public class KafkaConsumerService {
         Optional<Product> productOpt = productRepository.findByProductName(orderMessage.getProductName());
         if (productOpt.isEmpty()) {
             throw new RuntimeException("Product not found: " + orderMessage.getProductName());
+
         }
         Product product = productOpt.get();
 
