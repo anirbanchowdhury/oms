@@ -64,9 +64,9 @@ public class KafkaConsumerService {
         order.setCcy(orderMessage.getCcy());
         order.setDirection(orderMessage.getDirection());
         order.setQuantity(orderMessage.getQuantity());
-        // Set fromDt to the current date and thruDt to 'infinity' (a large future date)
+        // Set fromDt to the current date and thruDt to null to signify its active
         order.setFromDt(LocalDate.now()); // Current date
-        order.setThruDt(LocalDate.of(9999, 12, 31)); // "Infinity" as 9999-12-31
+        order.setThruDt(null); //explicitly setting to null
 
         // Step 3: Process allocations
         List<AllocationMessage> allocations = orderMessage.getAllocations();

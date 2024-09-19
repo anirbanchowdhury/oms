@@ -1,4 +1,4 @@
-package org.orderManagementSystem;
+package org.orderManagementSystem.setup;
 
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,5 +32,7 @@ public class JPATest {
 
         logger.info("deleted");
     }
+
+
 
 }

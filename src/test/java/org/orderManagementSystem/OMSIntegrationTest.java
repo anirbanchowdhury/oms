@@ -102,9 +102,9 @@ public class OMSIntegrationTest {
         accountRepository.deleteAll();
 
          */
-        logger.info("cleaning up");
+
     }
-    // Step 1: Listen to the PM_TOPIC for responses
+
     @KafkaListener(topics = PM_TOPIC, groupId = "pm-group")
     public void listenToPMTopic(String message) {
         pmResponseQueue.offer(message);
@@ -136,8 +136,6 @@ public class OMSIntegrationTest {
         allocation2.put("accountName", "AC2");  // Sending account name instead of accountId
         allocation2.put("pendingQuantity", 40);
         allocation2.put("allocatedQuantity", 0);
-
-
         allocation2.put("allocationCost", 0);
         allocation2.put("allocationCcy", "USD");
 

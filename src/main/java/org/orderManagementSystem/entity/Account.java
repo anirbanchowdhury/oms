@@ -30,4 +30,11 @@ public class Account {
     public void setAccountName(String accountName) {
         this.accountName = accountName;
     }
+
+    public Account(String accountName) {
+        this.accountName = accountName;
+    }
+
+    public Account() {
+    }
 }
