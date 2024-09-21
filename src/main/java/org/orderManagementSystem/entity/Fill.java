@@ -19,10 +19,8 @@ public class Fill {
     private int fillQuantity;
 
     @Column(nullable = false)
-    private LocalDate fromDt;
+    private LocalDate updateTimestamp; // dont need a from/thru dt here as it never sups out the previous fill. Each fill is unique and active
 
-    @Column(nullable = false)
-    private LocalDate thruDt;
 
     // getters and setters
 
@@ -50,19 +48,21 @@ public class Fill {
         this.fillQuantity = fillQuantity;
     }
 
-    public LocalDate getFromDt() {
-        return fromDt;
+    public LocalDate getUpdateTimestamp() {
+        return updateTimestamp;
     }
 
-    public void setFromDt(LocalDate fromDt) {
-        this.fromDt = fromDt;
+    public void setUpdateTimestamp(LocalDate updateTimestamp) {
+        this.updateTimestamp = updateTimestamp;
     }
 
-    public LocalDate getThruDt() {
-        return thruDt;
+
+    public Fill(Allocation allocation, int fillQuantity, LocalDate updateTimestamp) {
+        this.allocation = allocation;
+        this.fillQuantity = fillQuantity;
+        this.updateTimestamp = updateTimestamp;
     }
 
-    public void setThruDt(LocalDate thruDt) {
-        this.thruDt = thruDt;
+    public Fill() {
     }
 }

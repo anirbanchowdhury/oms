@@ -1,19 +1,18 @@
 package org.orderManagementSystem;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.orderManagementSystem.service.KafkaConsumerService.OMS_TOPIC;
-import static org.orderManagementSystem.service.KafkaConsumerService.PM_TOPIC;
+import static org.orderManagementSystem.service.KafkaConsumerProducerService.OMS_TOPIC;
+import static org.orderManagementSystem.service.KafkaConsumerProducerService.PM_TOPIC;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.aspectj.lang.annotation.Before;
-import org.awaitility.Awaitility;
+import org.apache.kafka.common.metrics.Stat;
 import org.junit.jupiter.api.*;
+import org.orderManagementSystem.dto.AllocationMessage;
 import org.orderManagementSystem.dto.PMResponseMessage;
 import org.orderManagementSystem.entity.*;
-import org.orderManagementSystem.entity.Order;
 import org.orderManagementSystem.repository.*;
+import org.orderManagementSystem.service.FillService;
+import org.orderManagementSystem.service.KafkaConsumerProducerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,18 +21,11 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 
 
 @SpringBootTest
@@ -43,9 +35,6 @@ public class OMSIntegrationTest {
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
-
-    @Autowired
-    private OrderRepository orderRepository;
 
     @Autowired
     private AllocationRepository allocationRepository;
@@ -63,7 +52,9 @@ public class OMSIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    EntityManager entityManager;
+    private FillService fillService;
+
+
     private LinkedBlockingQueue<String> pmResponseQueue = new LinkedBlockingQueue<>();
 
     /*@BeforeEach
@@ -96,8 +87,8 @@ public class OMSIntegrationTest {
     public void cleanupOnceAtTheEnd() {
         fillRepository.deleteAll();
         allocationRepository.deleteAll();
-        orderRepository.deleteAll();
-        assertEquals(0, orderRepository.findAll().size(), "Order should be deleted and not exist in the database");
+
+        //assertEquals(0, orderRepository.findAll().size(), "Order should be deleted and not exist in the database");
         /*productRepository.deleteAll();
         accountRepository.deleteAll();
 
@@ -105,88 +96,71 @@ public class OMSIntegrationTest {
 
     }
 
-    @KafkaListener(topics = PM_TOPIC, groupId = "pm-group")
+    @KafkaListener(topics = PM_TOPIC, groupId = "oms-group")
     public void listenToPMTopic(String message) {
+        logger.info("received a message on the PM topic {}", message);
         pmResponseQueue.offer(message);
     }
     private static final Logger logger = LoggerFactory.getLogger(OMSIntegrationTest.class);
 
 
+
+
+
     @Test
-    @Transactional
-    @Commit
-    public void testOrderProcessingAndFillingWithNames() throws Exception {
-        // Step 1: Create JSON order message with productName and accountNames
-        Map<String, Object> orderMessage = new HashMap<>();
-        orderMessage.put("sourceId", "SRC1");
-        orderMessage.put("productName", "P1");  // Sending product name instead of productId
-        orderMessage.put("ccy", "USD");
-        orderMessage.put("direction", "BUY");
-        orderMessage.put("quantity", 100);
+    public void testOrderSendToTrading() throws  Exception{
+        //receive an allocation request (1:1 transaction)
+        //store in allocation with filledQuantity = 0, originalQty = quantity from the message
+        //assert on PM response sent to PM topic
+        //assert on allocation table
 
-        // Allocations: AC1 = 60%, AC2 = 40% - simulating partial fills
-        Map<String, Object> allocation1 = new HashMap<>();
-        allocation1.put("accountName", "AC1");  // Sending account name instead of accountId
-        allocation1.put("pendingQuantity", 60);
-        allocation1.put("allocatedQuantity", 0);
-        allocation1.put("allocationCost", 0);
-        allocation1.put("allocationCcy", "USD");
+        // Create an instance of AllocationMessage
+        AllocationMessage message = new AllocationMessage();
+        message.setSourceOrderId("ORD12345");
+        message.setAccountName("AC1");
+        message.setProductName("P1");
+        message.setCcy("USD");
+        message.setDirection("BUY");
+        message.setOriginalQuantity(100);
+        message.setAllocatedQuantity(0);
 
-        Map<String, Object> allocation2 = new HashMap<>();
-        allocation2.put("accountName", "AC2");  // Sending account name instead of accountId
-        allocation2.put("pendingQuantity", 40);
-        allocation2.put("allocatedQuantity", 0);
-        allocation2.put("allocationCost", 0);
-        allocation2.put("allocationCcy", "USD");
-
-        // Include allocations in the order message
-        orderMessage.put("allocations", new Map[]{allocation1, allocation2});
-
-        // Step 2: Send the order message to Kafka
-        kafkaTemplate.send(new ProducerRecord<>(OMS_TOPIC, objectMapper.writeValueAsString(orderMessage)));
+        // Serialize to JSON
+        String jsonString = objectMapper.writeValueAsString(message);
+        /*{"sourceOrderId":"ORD12345","accountName":"AC1","productName":"P1","ccy":"USD","direction":"BUY","originalQuantity":100,"allocatedQuantity":0}*/
+        kafkaTemplate.send(new ProducerRecord<>(OMS_TOPIC, jsonString));
 
         // Step 3: Wait for the system to process the order and check the database
-        Awaitility.await()
+        /*Awaitility.await()
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> orderRepository.count() == 1 );  // Wait for the order to be processed
+                */
 
+        //
+        Thread.sleep(2000);
         // Step 4: Assert the database state (Order, Allocations, etc.)
-        List<Order> orders = orderRepository.findAll();  // Fetch the processed order
-        assertEquals(1, orders.size());
-        Order order = orders.get(0);  // Explicit Order type
+        Allocation allocation = allocationRepository.findBySourceOrderId("ORD12345");
+        assertNotNull( allocation);
 
-        assertNotNull(order);
-        assertEquals("P1", order.getProduct().getProductName());  // Check product name
-        assertEquals("SRC1", order.getSourceId());
-        assertEquals(100, order.getQuantity());
-
-        // Check allocations
-        List<Allocation> allocations = allocationRepository.findByOrder_OrderId(order.getOrderId());  // Explicit List<Allocation> type
-        assertEquals(2, allocations.size());
-
-        Allocation allocation1Entity = allocations.stream()
-                .filter(a -> a.getAccount().getAccountName().equals("AC1"))
-                .findFirst()
-                .orElse(null);  // Explicit Allocation type
-        assertNotNull(allocation1Entity);
-        assertEquals(60, allocation1Entity.getPendingQuantity());
-
-        Allocation allocation2Entity = allocations.stream()
-                .filter(a -> a.getAccount().getAccountName().equals("AC2"))
-                .findFirst()
-                .orElse(null);  // Explicit Allocation type
-        assertNotNull(allocation2Entity);
-        assertEquals(40, allocation2Entity.getPendingQuantity());
-
-        // Step 6: Assert on the response sent to PM_TOPIC
+        //Assert on PM response
         String pmResponseMessage = pmResponseQueue.poll(5, TimeUnit.SECONDS);  // Wait for the PM response
         assertThat(pmResponseMessage).isNotNull();
 
         PMResponseMessage pmResponse = objectMapper.readValue(pmResponseMessage, PMResponseMessage.class);
-        assertThat(pmResponse.getOrderId()).isEqualTo(order.getOrderId());
+        assertThat(pmResponse.getSourceOrderId()).isEqualTo(allocation.getSourceOrderId());
 
-        assertThat(pmResponse.getStatus()).isEqualTo("OK");
+        assertThat(pmResponse.getStatus()).isEqualTo(KafkaConsumerProducerService.Status.PENDING_EXECUTION.name());
 
+        //Not waiting but explicitly calling the fill
+        fillService.processFill();
+
+        String pmResponseExecutionMessage = pmResponseQueue.poll(5, TimeUnit.SECONDS);  // Wait for the PM response
+        assertThat(pmResponseExecutionMessage).isNotNull();
+
+        PMResponseMessage executionResponse = objectMapper.readValue(pmResponseExecutionMessage, PMResponseMessage.class);
+        assertThat(executionResponse.getSourceOrderId()).isEqualTo(allocation.getSourceOrderId());
+
+        assertThat(executionResponse.getStatus()).isEqualTo(KafkaConsumerProducerService.Status.EXECUTION.name());
 
     }
+
 }
