@@ -39,10 +39,10 @@ public class FillService {
     @Transactional
     public void processFill() throws JsonProcessingException {
         /* Find  All Allocations where the allocatedQty <> original Qty
-        * Do a random % fillup
-        * Create a fill row , update allocations accordingly
-        * If the allocatedQtys = originalQty, update Allocation dfd status //TODO can also sup out existing row if reqd.
-        * Send back to PM_topic the total executedQty so far // TODO - can be changed optionally to just the delta
+        *  Do a random % fillup
+        *  Create a fill row , update allocations accordingly
+        *  If the allocatedQtys = originalQty, update Allocation dfd status //TODO can also sup out existing row if reqd.
+        *  Send back to PM_topic the total executedQty so far // TODO - can be changed optionally to just the delta
         **/
         for(Allocation allocation : allocationRepository.findByDoneForDay(false)){
             logger.info(" Allocation which needs a fill  = {}",allocation);
@@ -63,7 +63,7 @@ public class FillService {
             pmResponse.setStatus(KafkaConsumerProducerService.Status.EXECUTION.name()); // Fill sent
 
             kafkaTemplate.send(PM_TOPIC, objectMapper.writeValueAsString(pmResponse));
-            logger.info("ACK sent back to PM topic");
+            logger.info("ACK sent back to PM topic on gill of {}", pmResponse);
         }
 
     }

@@ -54,6 +54,8 @@ public class OMSIntegrationTest {
     @Autowired
     private FillService fillService;
 
+    private static final Logger logger = LoggerFactory.getLogger(OMSIntegrationTest.class);
+
 
     private LinkedBlockingQueue<String> pmResponseQueue = new LinkedBlockingQueue<>();
 
@@ -101,10 +103,6 @@ public class OMSIntegrationTest {
         logger.info("received a message on the PM topic {}", message);
         pmResponseQueue.offer(message);
     }
-    private static final Logger logger = LoggerFactory.getLogger(OMSIntegrationTest.class);
-
-
-
 
 
     @Test

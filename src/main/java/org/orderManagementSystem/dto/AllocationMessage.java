@@ -68,7 +68,8 @@ public class AllocationMessage {
     public AllocationMessage() {
     }
 
-    public AllocationMessage(String sourceOrderId, String accountName, String productName, String ccy, String direction, int originalQuantity, int allocatedQuantity) {
+    public AllocationMessage(String sourceOrderId, String accountName, String productName, String ccy, String direction,
+                             int originalQuantity, int allocatedQuantity) {
         this.sourceOrderId = sourceOrderId;
         this.accountName = accountName;
         this.productName = productName;
